@@ -1,0 +1,8 @@
+pandas==2.2.3
+psycopg2==2.9.10
+psycopg2_binary==2.9.10
+python-dotenv==1.1.0
+Requests==2.32.3
+SQLAlchemy==2.0.36
+SQLAlchemy-Utils==0.41.0
+requests==2.32.3

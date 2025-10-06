@@ -50,7 +50,6 @@ def create_my_engine(
         engine = create_engine(connection_string)
         print("SQLAlchemy engine created successfully.")
 
-
         # Initialize MetaData
         metadata = MetaData()
 
@@ -68,7 +67,7 @@ def create_my_engine(
             print(f"New columns to add: {new_columns}")
             for new_column in new_columns:
                 print(f"Adding column: {new_column}")
-                query = text(f'ALTER TABLE {table_name} ADD COLUMN "{new_column}" VARCHAR') 
+                query = text(f'ALTER TABLE "{table_name}" ADD COLUMN "{new_column}" VARCHAR') 
                 with engine.begin() as conn:
                     conn.execute(query)
         # Insert data into the table using df.to_sql
@@ -106,7 +105,7 @@ def load_to_db(df: pd.DataFrame) -> None:
             port=int(os.getenv('port')),
             database=os.getenv('database'),
             sslmode=os.getenv('sslmode'),
-            table_name="api_wb_financereport_cpy",
+            table_name="api_wb_FinanceReport",
         )
 
         print("Finished processing file.")
@@ -124,5 +123,5 @@ def load_to_db(df: pd.DataFrame) -> None:
         subject1 = "Finance Reports - Error"
         body1 = "Finance Reports script failed. Please check the logs."
         mail.send_error_email(subject1, body1)
-        print("Error  ch email sent.")
+        print("Error email sent.")
         raise

@@ -77,7 +77,7 @@ def get_last_date(
     try:
         engine = create_engine(connection_string)
         with engine.connect() as conn:
-            query = f"SELECT MAX({date_column}) AS last_date FROM {table_name}"
+            query = f"SELECT MAX({date_column}) AS last_date FROM \"{table_name}\""
             df = pd.read_sql(query, conn)
             return df['last_date'][0]
     
@@ -106,7 +106,7 @@ def get_last_date(
 
 
 last_date = get_last_date(
-    table_name = 'api_wb_financereport_cpy',
+    table_name = 'api_wb_FinanceReport',
     date_column = 'date_to',
 
     user=os.getenv('user'),
@@ -165,9 +165,9 @@ print(f"Fetching data from {date_from} to {date_to}\n")
 # Example using generator expression
 def fetch_data(api_url, headers, chunk_size=10000):
     params = {
-            'dateFrom':  date_from.strftime('%Y-%m-%dT%H:%M:%SZ'), ###"2025-07-07T00:00:00"
+            'dateFrom': "2025-09-22T00:00:00",  ##date_from.strftime('%Y-%m-%dT%H:%M:%SZ'), ###"2025-07-07T00:00:00"
             "limit": 10000,
-            'dateTo': date_to.strftime("%Y-%m-%d") ,## "2025-09-28T23:59:59",
+            'dateTo': "2025-09-28T23:59:59",## date_to.strftime("%Y-%m-%d") ,## "2025-09-28T23:59:59",
             'rrdid': 0
             
     }
@@ -183,6 +183,8 @@ def fetch_data(api_url, headers, chunk_size=10000):
             print(params)
             params['rrdid'] = rrd_id
             print(params)
+            print(f"Sleeping for 61 seconds to respect API rate limits. fetch number {counter} ...")
+            time.sleep(61)
             response = requests.get(api_url, params=params, headers=headers)
 
             if response.status_code != 200:
@@ -191,36 +193,55 @@ def fetch_data(api_url, headers, chunk_size=10000):
 
             data = response.json()
             total_records = len(data)
+            print(f"Fetched {total_records} records.")
+            
 
             if total_records == 0:
                 print("No more records found.")
-                return pd.DataFrame()
+                yield pd.DataFrame()
+                break
+            
+            if total_records < chunk_size:
+                print("Fetched less than chunk size, ending pagination.")
+                yield pd.DataFrame(data)
+                break
 
-
-            # counter += 1
-            # Yield each chunk as a DataFrame
-            yield pd.DataFrame(data)
+            counter += 1
+            print(f"Processing chunk {counter} with {total_records} records...")
+            print(f"{params['dateFrom']},  {params['dateTo']}, {params['rrdid']}")
 
             # Move the cursor forward
             rrd_id = data[-1]['rrd_id']
 
-            if total_records < chunk_size:
-                break
-            print(f"Sleeping for 60 seconds to respect API rate limits. fetch number {counter} ...")
-            time.sleep(60)
+            # Yield each chunk as a DataFrame
+            yield pd.DataFrame(data)
+
+         
+
+           
+         
+            
 
     # Use pd.concat to join the generated DataFrames
     try:
-        data_generator = data_generator()
-        next(data_generator)
-        return pd.concat(data_generator, ignore_index=True) 
-    except StopIteration:
+        return pd.concat(data_generator(), ignore_index=True) 
+    except BaseException:
         return pd.DataFrame()
 
-def extract_data(api_url, headers) -> pd.DataFrame:
+def extract_data() -> pd.DataFrame:
     """
     Extract data from the API and return as a DataFrame.
     """
+
+    wb_api_token = os.getenv('wb_api_token')
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': wb_api_token 
+    }
+    api_url = 'https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod'
+
+
     print("Starting data extraction from API...")
     df = fetch_data(api_url, headers)
     print("Data extraction completed.")

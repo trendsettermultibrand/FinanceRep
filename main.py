@@ -14,16 +14,8 @@ def main():
     """
     Main function to run the ETL process.
     """
-    wb_api_token = os.getenv('wb_api_token')
-
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': wb_api_token 
-    }
-    api_url = 'https://statistics-api.wildberries.ru/api/v5/supplier/reportDetailByPeriod'
-
     print("ETL process started.")
-    df = extract_data(api_url, headers)
+    df = extract_data()
     if not df.empty:
         load_to_db(df)
         print(f"Successfully completed ETL process.")

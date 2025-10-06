@@ -165,9 +165,9 @@ print(f"Fetching data from {date_from} to {date_to}\n")
 # Example using generator expression
 def fetch_data(api_url, headers, chunk_size=10000):
     params = {
-            'dateFrom': "2025-09-22T00:00:00",  ##date_from.strftime('%Y-%m-%dT%H:%M:%SZ'), ###"2025-07-07T00:00:00"
+            'dateFrom': date_from.strftime('%Y-%m-%dT%H:%M:%SZ'), ##"2025-09-22T00:00:00",  ##date_from.strftime('%Y-%m-%dT%H:%M:%SZ'), ###"2025-07-07T00:00:00"
             "limit": 10000,
-            'dateTo': "2025-09-28T23:59:59",## date_to.strftime("%Y-%m-%d") ,## "2025-09-28T23:59:59",
+            'dateTo': date_to.strftime("%Y-%m-%dT%H:%M:%SZ"),  ## "2025-09-28T23:59:59",## date_to.strftime("%Y-%m-%d") ,## "2025-09-28T23:59:59",
             'rrdid': 0
             
     }
